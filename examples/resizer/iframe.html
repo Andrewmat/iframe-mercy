@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>iframe</title>
+  </head>
+  <body>
+    <header>Header iframe</header>
+    <div id="app">
+      <div>1</div>
+      <div>2</div>
+      <div>3</div>
+      <div>4</div>
+      <div>5</div>
+      <div>6</div>
+    </div>
+    <footer>Footer iframe</footer>
+    <script type="module" src="./iframe.ts"></script>
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+      }
+      #app {
+        display: flex;
+        flex-wrap: wrap;
+        background: green;
+        gap: 40px;
+      }
+      #app > * {
+        flex-basis: 400px;
+        flex-grow: 0;
+        flex-shrink: 0;
+        height: 200px;
+        background: greenyellow;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 3rem;
+      }
+    </style>
+  </body>
+</html>
