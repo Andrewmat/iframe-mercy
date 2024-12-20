@@ -1,27 +1,22 @@
-import { mercy } from '../../src';
-import type {
-  HelloBackMessage,
-  HelloMessage,
-} from './types';
+import { setupClient } from '../../src';
+import type { HelloBackMessage, HelloMessage } from './types';
 
-window.addEventListener('load', async () => {
+main();
+async function main() {
   const iframe = document.getElementsByTagName('iframe')[0];
 
-  const { fetchMessage } = mercy<
-    HelloBackMessage,
-    HelloMessage
-  >();
+  const fetchMessage = await setupClient({
+    origin: window.location.origin,
+    client: iframe.contentWindow!,
+  });
 
   const myName = 'top';
   console.log(`top: "Hello, my name is ${myName}"`);
 
-  const helloBack = await fetchMessage({
-    toWindow: iframe.contentWindow!,
+  const helloBack = await fetchMessage<HelloBackMessage, HelloMessage>({
     message: { type: 'hello', payload: { name: myName } },
     waitFor: 'hello back',
   });
 
-  console.log(
-    `top: "Now I know it is ${helloBack.timeOfDay}"`
-  );
-});
+  console.log(`top: "Now I know it is ${helloBack.payload.timeOfDay}"`);
+}

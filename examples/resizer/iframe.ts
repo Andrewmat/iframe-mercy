@@ -2,28 +2,21 @@ import {
   Height,
   type ResponseHeightMessage,
   type FetchHeightMessage,
-  isFetchHeightMessage,
 } from './common';
-import { mercy } from '../../src';
+import { messageHandler, setupServer } from '../../src';
 
-const { respondMessage } = mercy<
-  FetchHeightMessage,
-  ResponseHeightMessage
->({
-  isValidMessage: isFetchHeightMessage,
+const server = setupServer({
+  origin: 'http://localhost:5173',
+  client: window.parent,
+  handlers: [
+    messageHandler<FetchHeightMessage, ResponseHeightMessage>(
+      'fetch:height',
+      () => ({
+        type: 'response:height',
+        payload: Height.parse(`${document.body.clientHeight}px`),
+      })
+    ),
+  ],
 });
 
-main();
-async function main() {
-  respondMessage({
-    fromOrigin: 'http://localhost:5173',
-    toWindow: window.parent,
-    waitFor: 'fetch:height',
-    responseFn: () => ({
-      type: 'response:height',
-      payload: Height.parse(
-        `${document.body.clientHeight}px`
-      ),
-    }),
-  });
-}
+server.listen();

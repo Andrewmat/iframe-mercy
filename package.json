@@ -1,10 +1,13 @@
 {
   "name": "iframe-mercy",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
-  "files": ["dist"],
-  "main": "./dist/my-lib.umd.cjs",
-  "module": "./dist/my-lib.js",
+  "files": [
+    "dist"
+  ],
+  "module": "./dist/index.js",
+  "main": "./dist/index.umd.cjs",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "import": "./dist/index.js",
@@ -19,11 +22,10 @@
   "devDependencies": {
     "@types/lodash.debounce": "^4.0.9",
     "@types/node": "^22.10.2",
-    "typescript": "~5.6.2",
-    "vite": "^6.0.3"
-  },
-  "dependencies": {
     "lodash.debounce": "^4.0.8",
+    "typescript": "~5.6.2",
+    "vite": "^6.0.3",
+    "vite-plugin-dts": "^4.4.0",
     "zod": "^3.24.1"
   }
 }
