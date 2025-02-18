@@ -6,11 +6,11 @@ const iframe = document.getElementById('iframe') as HTMLIFrameElement;
 
 const fetchIframe = setupClient({
   origin: window.location.origin,
-  client: iframe.contentWindow!,
+  server: iframe.contentWindow!,
 });
 
 const updateIframeHeight = debounce(async function main() {
-  const response = await fetchIframe<ResponseHeightMessage, FetchHeightMessage>(
+  const response = await fetchIframe<FetchHeightMessage, ResponseHeightMessage>(
     {
       message: { type: 'fetch:height' },
       waitFor: 'response:height',

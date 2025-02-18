@@ -7,13 +7,13 @@ async function main() {
 
   const fetchMessage = await setupClient({
     origin: window.location.origin,
-    client: iframe.contentWindow!,
+    server: iframe.contentWindow!,
   });
 
   const myName = 'top';
   console.log(`top: "Hello, my name is ${myName}"`);
 
-  const helloBack = await fetchMessage<HelloBackMessage, HelloMessage>({
+  const helloBack = await fetchMessage<HelloMessage, HelloBackMessage>({
     message: { type: 'hello', payload: { name: myName } },
     waitFor: 'hello back',
   });

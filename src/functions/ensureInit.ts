@@ -4,27 +4,32 @@ import { sendMessage } from './sendMessage';
 
 export async function ensureInit({
   origin,
-  client,
+  server,
   thisWindow = window,
 }: {
   origin: string;
-  client: Window;
+  server: Window;
   thisWindow?: Window;
 }) {
   return new Promise((resolve) => {
+    let initialized = false;
     addMessageListener<typeof ackMessage>({
       messageType: ackMessage.type,
       onMessage: () => {
+        initialized = true;
         resolve(true);
-        thisWindow.clearInterval(intervalId);
+        if (intervalId) thisWindow.clearInterval(intervalId);
       },
     });
-    const intervalId = thisWindow.setInterval(() => {
+    const sendInitMessage = () =>
       sendMessage({
         message: initMessage,
         origin,
-        client,
+        client: server,
       });
-    }, 300);
+    let intervalId: number;
+    if (!initialized) {
+      intervalId = thisWindow.setInterval(sendInitMessage, 300);
+    }
   });
 }
