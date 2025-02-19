@@ -12,7 +12,7 @@ export function setupServer({
   origin: string;
   client: Window;
   thisWindow?: Window;
-  handlers: MessageHandler<any, any>[];
+  handlers: MessageHandler<GenericMessage, GenericMessage>[];
 }) {
   const unsubscribes: (() => void)[] = [];
   for (const handle of handlers) {
@@ -21,14 +21,26 @@ export function setupServer({
         thisWindow,
         messageType: handle.messageType,
         onMessage: (message) => {
-          const outgoingMessage = handle.fn(message);
-          if (outgoingMessage) {
-            sendMessage({
-              message: outgoingMessage,
-              origin,
-              client,
+          const handlerResult = handle.fn(message);
+          if (!handlerResult) return;
+
+          if (isPromiseLike(handlerResult)) {
+            handlerResult.then((outgoingMessage) => {
+              sendMessage({
+                message: outgoingMessage,
+                origin,
+                client,
+              });
             });
+            return;
           }
+
+          sendMessage({
+            message: handlerResult,
+            origin,
+            client,
+          });
+          return;
         },
       })
     );
@@ -68,5 +80,11 @@ export type MessageHandler<
   TMessageOut extends GenericMessage | void
 > = {
   messageType: TMessageIn['type'];
-  fn: (message: TMessageIn) => TMessageOut;
+  fn: (message: TMessageIn) => TMessageOut | PromiseLike<TMessageOut>;
 };
+
+const isPromiseLike = (value: unknown): value is PromiseLike<unknown> =>
+  value != null &&
+  typeof value === 'object' &&
+  'then' in value &&
+  typeof value.then === 'function';
