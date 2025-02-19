@@ -3,7 +3,10 @@ import { ack } from './functions/ack';
 import { sendMessage } from './functions/sendMessage';
 import type { GenericMessage } from './types';
 
-export function setupServer({
+export function setupServer<
+  TMessageIn extends GenericMessage,
+  TMessageOut extends GenericMessage
+>({
   origin,
   client,
   thisWindow,
@@ -12,7 +15,7 @@ export function setupServer({
   origin: string;
   client: Window;
   thisWindow?: Window;
-  handlers: MessageHandler<GenericMessage, GenericMessage>[];
+  handlers: MessageHandler<TMessageIn, TMessageOut>[];
 }) {
   const unsubscribes: (() => void)[] = [];
   for (const handle of handlers) {
@@ -68,7 +71,7 @@ export function messageHandler<
   TMessageOut extends GenericMessage | void
 >(
   messageType: TMessageIn['type'],
-  fn: (message: TMessageIn) => TMessageOut
+  fn: (message: TMessageIn) => TMessageOut | PromiseLike<TMessageOut>
 ): MessageHandler<TMessageIn, TMessageOut> {
   return {
     messageType,
