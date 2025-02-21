@@ -12,7 +12,7 @@ const fetchIframe = setupClient({
 const updateIframeHeight = debounce(async function main() {
   const response = await fetchIframe<FetchHeightMessage, ResponseHeightMessage>(
     {
-      message: { type: 'fetch:height' },
+      message: { action: 'fetch:height' },
       waitFor: 'response:height',
     }
   );

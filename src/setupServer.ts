@@ -80,7 +80,7 @@ export function messageHandler<
   TMessageIn extends GenericMessage,
   TMessageOut extends GenericMessage | void
 >(
-  messageType: TMessageIn['type'],
+  messageType: TMessageIn['action'],
   fn: (message: TMessageIn) => TMessageOut | PromiseLike<TMessageOut>
 ): MessageHandler<TMessageIn, TMessageOut> {
   return {
@@ -92,7 +92,7 @@ export type MessageHandler<
   TMessageIn extends GenericMessage,
   TMessageOut extends GenericMessage | void
 > = {
-  messageType: TMessageIn['type'];
+  messageType: TMessageIn['action'];
   fn: (message: TMessageIn) => TMessageOut | PromiseLike<TMessageOut>;
 };
 

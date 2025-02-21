@@ -14,7 +14,7 @@ async function main() {
   console.log(`top: "Hello, my name is ${myName}"`);
 
   const helloBack = await fetchMessage<HelloMessage, HelloBackMessage>({
-    message: { type: 'hello', payload: { name: myName } },
+    message: { action: 'hello', payload: { name: myName } },
     waitFor: 'hello back',
   });
 

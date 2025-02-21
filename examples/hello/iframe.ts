@@ -15,7 +15,7 @@ const server = setupServer({
           `iframe: "Hello ${helloMessage.payload.name}, it is ${timeOfDay}"`
         );
         return {
-          type: 'hello back',
+          action: 'hello back',
           payload: { timeOfDay },
         };
       }

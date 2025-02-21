@@ -12,7 +12,7 @@ const server = setupServer({
     messageHandler<FetchHeightMessage, ResponseHeightMessage>(
       'fetch:height',
       () => ({
-        type: 'response:height',
+        action: 'response:height',
         payload: Height.parse(`${document.body.clientHeight}px`),
       })
     ),

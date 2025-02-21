@@ -14,7 +14,7 @@ export interface FetchMessageOptions<
   TMessageOut extends GenericMessage,
   TMessageIn extends GenericMessage
 > {
-  waitFor?: TMessageIn['type'];
+  waitFor?: TMessageIn['action'];
   message: TMessageOut;
 }
 
@@ -33,7 +33,7 @@ export function setupClient({
     waitFor,
     message,
   }: {
-    waitFor: TMessageIn['type'];
+    waitFor: TMessageIn['action'];
     message: TMessageOut;
   }): Promise<TMessageIn>;
   async function fetchMessage<

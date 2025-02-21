@@ -15,7 +15,7 @@ export function respondMessage<
   origin,
   client,
 }: {
-  waitFor: TMessageIn['type'];
+  waitFor: TMessageIn['action'];
   responseFn: (message: TMessageIn) => TMessageOut;
   origin: string;
   client: Window;

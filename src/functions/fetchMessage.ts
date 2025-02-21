@@ -13,7 +13,7 @@ export function fetchMessage<
   client,
 }: {
   message: TMessageOut;
-  waitFor: TMessageIn['type'];
+  waitFor: TMessageIn['action'];
   origin: string;
   client: Window;
   thisWindow?: Window;

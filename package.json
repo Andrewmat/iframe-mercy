@@ -1,6 +1,6 @@
 {
   "name": "iframe-mercy",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "type": "module",
   "files": [
     "dist"
@@ -17,6 +17,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json",
     "preview": "vite preview",
     "prepublish": "pnpm build"
   },

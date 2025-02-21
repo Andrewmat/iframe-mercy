@@ -14,7 +14,7 @@ export async function ensureInit({
   return new Promise((resolve) => {
     let initialized = false;
     addMessageListener<typeof ackMessage>({
-      messageType: ackMessage.type,
+      messageType: ackMessage.action,
       onMessage: () => {
         initialized = true;
         resolve(true);

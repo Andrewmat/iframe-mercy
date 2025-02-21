@@ -14,7 +14,7 @@ export function ack({
     origin,
     client: from,
     thisWindow,
-    waitFor: initMessage.type,
+    waitFor: initMessage.action,
     responseFn: () => ackMessage,
   });
 }

@@ -22,7 +22,7 @@ const server = setupServer({
   handlers: [
     messageHandler('parent-message', () => {
       doSomething()
-      return { type: 'iframe-message' }
+      return { action: 'iframe-message' }
     })
   ]
 })
@@ -43,7 +43,7 @@ const fetchIframe = setupClient({
 })
 
 const iframeMessage = await fetchIframe({
-  message: { type: 'parent-message' },
+  message: { action: 'parent-message' },
   waitFor: 'iframe-message',
 })
 ```

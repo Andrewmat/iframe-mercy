@@ -2,14 +2,14 @@ import type { GenericMessage } from '../types';
 import { addMessageListener } from './addMessageListener';
 
 /**
- * Listens to one ocurrence of a specific message type
+ * Listens to one ocurrence of a specific message action
  * @returns a promise of the awaited message
  * */
 export async function waitForMessage<TMessageIn extends GenericMessage>({
   messageType,
   thisWindow,
 }: {
-  messageType: TMessageIn['type'];
+  messageType: TMessageIn['action'];
   thisWindow?: Window;
 }) {
   return new Promise<TMessageIn>((resolve) => {
