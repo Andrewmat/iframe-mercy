@@ -3,6 +3,21 @@ import { ack } from './functions/ack';
 import { sendMessage } from './functions/sendMessage';
 import type { GenericMessage } from './types';
 
+export interface SetupServerOptions<
+  TMessageIn extends GenericMessage,
+  TMessageOut extends GenericMessage
+> {
+  origin: string;
+  client: Window;
+  thisWindow?: Window;
+  handlers: MessageHandler<TMessageIn, TMessageOut>[];
+}
+
+export interface IframeServer {
+  listen: () => void;
+  unlisten: () => void;
+}
+
 export function setupServer<
   TMessageIn extends GenericMessage,
   TMessageOut extends GenericMessage
@@ -11,12 +26,7 @@ export function setupServer<
   client,
   thisWindow,
   handlers,
-}: {
-  origin: string;
-  client: Window;
-  thisWindow?: Window;
-  handlers: MessageHandler<TMessageIn, TMessageOut>[];
-}) {
+}: SetupServerOptions<TMessageIn, TMessageOut>): IframeServer {
   const unsubscribes: (() => void)[] = [];
   for (const handle of handlers) {
     unsubscribes.push(

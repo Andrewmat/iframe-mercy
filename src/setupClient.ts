@@ -3,16 +3,29 @@ import { fetchMessage as fetchMessageFn } from './functions/fetchMessage';
 import { sendMessage as sendMessageFn } from './functions/sendMessage';
 import type { GenericMessage } from './types';
 
+export interface SetupClientOptions {
+  origin: string;
+  server: Window;
+  skipServerCheck?: boolean;
+  thisWindow?: Window;
+}
+
+export interface FetchMessageOptions<
+  TMessageOut extends GenericMessage,
+  TMessageIn extends GenericMessage
+> {
+  waitFor?: TMessageIn['type'];
+  message: TMessageOut;
+}
+
 export function setupClient({
   origin,
   server,
+  skipServerCheck,
   thisWindow = window,
-}: {
-  origin: string;
-  server: Window;
-  thisWindow?: Window;
-}) {
+}: SetupClientOptions) {
   let initialized = false;
+
   async function fetchMessage<
     TMessageOut extends GenericMessage,
     TMessageIn extends GenericMessage
@@ -31,14 +44,8 @@ export function setupClient({
   async function fetchMessage<
     TMessageOut extends GenericMessage,
     TMessageIn extends GenericMessage
-  >({
-    waitFor,
-    message,
-  }: {
-    waitFor?: TMessageIn['type'];
-    message: TMessageOut;
-  }) {
-    if (!initialized) {
+  >({ waitFor, message }: FetchMessageOptions<TMessageOut, TMessageIn>) {
+    if (!initialized && !skipServerCheck) {
       await ensureInit({
         origin,
         server: server,
