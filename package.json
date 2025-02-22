@@ -18,6 +18,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "preview": "vite preview",
     "prepublish": "pnpm build"
   },
@@ -25,6 +27,7 @@
     "@types/lodash.debounce": "^4.0.9",
     "@types/node": "^22.10.2",
     "lodash.debounce": "^4.0.8",
+    "prettier": "^3.5.1",
     "typescript": "~5.6.2",
     "vite": "^6.0.3",
     "vite-plugin-dts": "^4.4.0",

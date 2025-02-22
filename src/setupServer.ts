@@ -5,7 +5,7 @@ import type { GenericMessage } from './types';
 
 export interface SetupServerOptions<
   TMessageIn extends GenericMessage,
-  TMessageOut extends GenericMessage
+  TMessageOut extends GenericMessage,
 > {
   origin: string;
   client: Window;
@@ -20,7 +20,7 @@ export interface IframeServer {
 
 export function setupServer<
   TMessageIn extends GenericMessage,
-  TMessageOut extends GenericMessage
+  TMessageOut extends GenericMessage,
 >({
   origin,
   client,
@@ -78,7 +78,7 @@ export function setupServer<
 
 export function messageHandler<
   TMessageIn extends GenericMessage,
-  TMessageOut extends GenericMessage | void
+  TMessageOut extends GenericMessage | void,
 >(
   messageType: TMessageIn['action'],
   fn: (message: TMessageIn) => TMessageOut | PromiseLike<TMessageOut>
@@ -90,7 +90,7 @@ export function messageHandler<
 }
 export type MessageHandler<
   TMessageIn extends GenericMessage,
-  TMessageOut extends GenericMessage | void
+  TMessageOut extends GenericMessage | void,
 > = {
   messageType: TMessageIn['action'];
   fn: (message: TMessageIn) => TMessageOut | PromiseLike<TMessageOut>;

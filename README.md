@@ -13,37 +13,37 @@ npm install iframe-mercy
 In the iframe, use `setupServer()` and `messageHandler` to create message handlers
 
 ```ts
-import { setupServer, messageHandler } from 'iframe-mercy'
+import { setupServer, messageHandler } from 'iframe-mercy';
 
-const parentOrigin = 'https://www.example.com'
+const parentOrigin = 'https://www.example.com';
 const server = setupServer({
   origin: parentOrigin,
   client: window.parent,
   handlers: [
     messageHandler('parent-message', () => {
-      doSomething()
-      return { action: 'iframe-message' }
-    })
-  ]
-})
-server.listen()
+      doSomething();
+      return { action: 'iframe-message' };
+    }),
+  ],
+});
+server.listen();
 ```
 
 In the parent, use `setupClient()`
 
 ```ts
-import { setupClient } from 'iframe-mercy'
+import { setupClient } from 'iframe-mercy';
 
 const iframe = document.getElementsByTagName('iframe')[0];
-const iframeOrigin = new URL(iframe.src).origin
+const iframeOrigin = new URL(iframe.src).origin;
 
 const fetchIframe = setupClient({
   origin: iframeOrigin,
   client: iframe.contentWindow,
-})
+});
 
 const iframeMessage = await fetchIframe({
   message: { action: 'parent-message' },
   waitFor: 'iframe-message',
-})
+});
 ```

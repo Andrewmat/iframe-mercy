@@ -4,7 +4,7 @@ import { waitForMessage } from './waitForMessage';
 
 export function fetchMessage<
   TMessageIn extends GenericMessage,
-  TMessageOut extends GenericMessage
+  TMessageOut extends GenericMessage,
 >({
   message,
   waitFor,
