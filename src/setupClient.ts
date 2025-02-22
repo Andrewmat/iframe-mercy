@@ -12,7 +12,7 @@ export interface SetupClientOptions {
 
 export interface FetchMessageOptions<
   TMessageOut extends GenericMessage,
-  TMessageIn extends GenericMessage
+  TMessageIn extends GenericMessage,
 > {
   waitFor?: TMessageIn['action'];
   message: TMessageOut;
@@ -28,7 +28,7 @@ export function setupClient({
 
   async function fetchMessage<
     TMessageOut extends GenericMessage,
-    TMessageIn extends GenericMessage
+    TMessageIn extends GenericMessage,
   >({
     waitFor,
     message,
@@ -38,12 +38,12 @@ export function setupClient({
   }): Promise<TMessageIn>;
   async function fetchMessage<
     TMessageOut extends GenericMessage,
-    TMessageIn extends GenericMessage
+    TMessageIn extends GenericMessage,
   >({ message }: { message: TMessageOut }): Promise<void>;
 
   async function fetchMessage<
     TMessageOut extends GenericMessage,
-    TMessageIn extends GenericMessage
+    TMessageIn extends GenericMessage,
   >({ waitFor, message }: FetchMessageOptions<TMessageOut, TMessageIn>) {
     if (!initialized && !skipServerCheck) {
       await ensureInit({

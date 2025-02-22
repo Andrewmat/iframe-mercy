@@ -7,7 +7,7 @@ import { sendMessage } from './sendMessage';
  */
 export function respondMessage<
   TMessageIn extends GenericMessage,
-  TMessageOut extends GenericMessage
+  TMessageOut extends GenericMessage,
 >({
   waitFor,
   responseFn,
