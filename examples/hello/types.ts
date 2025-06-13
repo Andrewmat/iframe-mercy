@@ -1,13 +1,11 @@
-import type { GenericMessage } from '../../src';
-
-export interface HelloMessage extends GenericMessage {
+export interface HelloMessage {
   action: 'hello';
   payload: {
     name: string;
   };
 }
 
-export interface HelloBackMessage extends GenericMessage {
+export interface HelloBackMessage {
   action: 'hello back';
   payload: {
     timeOfDay: 'morning' | 'night';

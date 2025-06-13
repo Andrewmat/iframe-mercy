@@ -1,13 +1,4 @@
-export {
-  setupServer,
-  type IframeServer,
-  type SetupServerOptions,
-  messageHandler,
-  type MessageHandler,
-} from './setupServer';
-export {
-  setupClient,
-  type SetupClientOptions,
-  type FetchMessageOptions,
-} from './setupClient';
-export type { GenericMessage } from './types';
+export { setupClient } from './setup-client';
+export { setupServer } from './setup-server';
+export { matchMessage } from './match-message';
+export type { MessageController, MessageMatcher } from './utils';
