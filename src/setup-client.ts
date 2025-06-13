@@ -1,4 +1,3 @@
-import { matchMessage } from './match-message';
 import { dispatchMessage } from './dispatch-message';
 import { createListenerManager } from './listener-manager';
 import { ackMatcher, synMessage } from './syn-ack';
@@ -28,11 +27,14 @@ export function setupClient({
     signal: abortController.signal,
     root: thisWindow,
   });
+  listenerManager.start();
   signal?.addEventListener('abort', (reason) => {
     abortController.abort(reason);
   });
 
-  const client = { postMessage };
+  const client = {
+    postMessage,
+  };
   return client;
 
   // TO DO improve return type to Promise<void> if waitFor is undefined
@@ -75,40 +77,23 @@ export function setupClient({
       if (canPostMessage) return;
 
       return new Promise<void>((resolve) => {
+        let intervalId: number;
         listenerManager.on(ackMatcher, () => {
           canPostMessage = true;
           resolve();
         });
-        dispatchMessage({
-          message: synMessage,
-          targetOrigin: outgoingOrigin,
-          targetWindow: outgoingWindow,
-        });
+
+        const dispatchSyn = () => {
+          dispatchMessage({
+            message: synMessage,
+            targetOrigin: outgoingOrigin,
+            targetWindow: outgoingWindow,
+          });
+          thisWindow.clearInterval(intervalId);
+        };
+        thisWindow.requestIdleCallback(dispatchSyn);
+        intervalId = thisWindow.setInterval(dispatchSyn, 100);
       });
     }
   }
-}
-
-async function example() {
-  const abortController = new AbortController();
-  const client = setupClient({
-    outgoingOrigin: '*',
-    outgoingWindow: document.querySelector('iframe')!.contentWindow!,
-    incomingOrigins: ['https://www.nomadglobal.com'],
-    signal: abortController.signal,
-    waitForServer: true,
-  });
-
-  const result = await client.postMessage({
-    message: { type: 'HELLO', payload: 'world' },
-    waitFor: matchMessage({ type: 'hello' }),
-    signal: abortController.signal,
-  });
-  result.type === 'hello';
-
-  // TO DO improve return type when waitFor is not defined
-  const result2 = client.postMessage({
-    message: { type: 'HELLO', payload: 'world' },
-    signal: abortController.signal,
-  });
 }

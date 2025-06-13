@@ -28,7 +28,7 @@ export function createListenerManager({
       const hasMatched = entry.matcher(event.data);
       if (hasMatched) {
         let result = entry.controller(event.data);
-        if ('then' in result) {
+        if (result != null && 'then' in result) {
           result = await result;
         }
         dispatchMessage({
@@ -70,6 +70,7 @@ export function createListenerManager({
     on,
     off,
     status,
+    __listeners: entries,
   };
   return manager;
 }

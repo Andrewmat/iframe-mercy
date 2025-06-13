@@ -20,3 +20,13 @@ export function matchMessage<
     return true;
   };
 }
+
+export function matchKey<const K extends keyof any>(key: K) {
+  return function keyMatcher<TIncoming extends { [k in K]: V }, const V>(
+    value: V
+  ) {
+    return matchMessage<TIncoming, { [k in K]: V }>({ [key]: value } as {
+      [k in K]: V;
+    });
+  };
+}

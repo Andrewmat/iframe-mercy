@@ -1,5 +1,5 @@
-import { matchMessage, setupClient } from '../../src';
-import type { HelloBackMessage, HelloMessage } from './types';
+import { setupClient } from '../../src';
+import { matchType, type HelloBackMessage, type HelloMessage } from './common';
 
 main();
 async function main() {
@@ -14,8 +14,8 @@ async function main() {
   console.log(`top: "Hello, my name is ${myName}"`);
 
   const helloBack = await client.postMessage<HelloMessage, HelloBackMessage>({
-    message: { action: 'hello', payload: { name: myName } },
-    waitFor: matchMessage({ action: 'hello back' }),
+    message: { type: 'hello', payload: { name: myName } },
+    waitFor: matchType('hello back'),
   });
 
   console.log(`top: "Now I know it is ${helloBack.payload.timeOfDay}"`);

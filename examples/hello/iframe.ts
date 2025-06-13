@@ -1,12 +1,12 @@
-import { matchMessage, setupServer } from '../../src';
-import type { HelloBackMessage, HelloMessage } from './types';
+import { setupServer } from '../../src';
+import { matchType, type HelloBackMessage, type HelloMessage } from './common';
 
 setupServer({
   outgoingOrigin: window.location.origin,
   outgoingWindow: window.parent,
 })
   .addListener<HelloMessage, HelloBackMessage>(
-    matchMessage({ action: 'hello' }),
+    matchType('hello'),
     async (helloMessage) => {
       await new Promise((r) => window.setTimeout(r, 1000));
       const hours = new Date().getHours();
@@ -15,7 +15,7 @@ setupServer({
         `iframe: "Hello ${helloMessage.payload.name}, it is ${timeOfDay}"`
       );
       return {
-        action: 'hello back',
+        type: 'hello back',
         payload: { timeOfDay },
       };
     }

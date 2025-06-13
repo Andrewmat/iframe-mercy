@@ -1,13 +1,17 @@
+import { matchKey } from '../../src';
+
 export interface HelloMessage {
-  action: 'hello';
+  type: 'hello';
   payload: {
     name: string;
   };
 }
 
 export interface HelloBackMessage {
-  action: 'hello back';
+  type: 'hello back';
   payload: {
     timeOfDay: 'morning' | 'night';
   };
 }
+
+export const matchType = matchKey('type');

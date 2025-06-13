@@ -3,20 +3,18 @@ import {
   type ResponseHeightMessage,
   type FetchHeightMessage,
 } from './common';
-import { messageHandler, setupServer } from '../../src';
+import { matchMessage, setupServer } from '../../src';
 
 const server = setupServer({
-  origin: 'http://localhost:5173',
-  client: window.parent,
-  handlers: [
-    messageHandler<FetchHeightMessage, ResponseHeightMessage>(
-      'fetch:height',
-      () => ({
-        action: 'response:height',
-        payload: Height.parse(`${document.body.clientHeight}px`),
-      })
-    ),
-  ],
-});
+  outgoingOrigin: 'http://localhost:5173',
+  outgoingWindow: window.parent,
+  incomingOrigins: ['http://localhost:5173'],
+}).addListener<FetchHeightMessage, ResponseHeightMessage>(
+  matchMessage({ action: 'fetch:height' }),
+  () => ({
+    action: 'response:height',
+    payload: Height.parse(`${document.body.clientHeight}px`),
+  })
+);
 
 server.listen();

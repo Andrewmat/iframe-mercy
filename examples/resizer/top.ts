@@ -1,23 +1,25 @@
 import debounce from 'lodash.debounce';
 import { type FetchHeightMessage, type ResponseHeightMessage } from './common';
-import { setupClient } from '../../src';
+import { matchMessage, setupClient } from '../../src';
 
 const iframe = document.getElementById('iframe') as HTMLIFrameElement;
 
-const fetchIframe = setupClient({
-  origin: window.location.origin,
-  server: iframe.contentWindow!,
+const client = setupClient({
+  outgoingOrigin: window.location.origin,
+  outgoingWindow: iframe.contentWindow!,
+  incomingOrigins: [window.location.origin],
 });
 
 const updateIframeHeight = debounce(async function main() {
-  const response = await fetchIframe<FetchHeightMessage, ResponseHeightMessage>(
-    {
-      message: { action: 'fetch:height' },
-      waitFor: 'response:height',
-    }
-  );
+  const response = await client.postMessage<
+    FetchHeightMessage,
+    ResponseHeightMessage
+  >({
+    message: { action: 'fetch:height' },
+    waitFor: matchMessage({ action: 'response:height' }),
+  });
   iframe.style.height = response.payload;
-}, 300);
+}, 50);
 
 updateIframeHeight();
 

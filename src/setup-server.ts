@@ -1,4 +1,3 @@
-import { matchMessage } from './match-message';
 import { createListenerManager } from './listener-manager';
 import { ackMessage, synMatcher } from './syn-ack';
 import { type MessageController, type MessageMatcher } from './utils';
@@ -26,7 +25,7 @@ export function setupServer({
   });
 
   listenerManager.on(synMatcher, () => {
-    outgoingWindow.postMessage(ackMessage, outgoingOrigin);
+    return ackMessage;
   });
 
   serverSignal?.addEventListener('abort', () => {
@@ -64,26 +63,4 @@ export function setupServer({
     listen,
   };
   return server;
-}
-
-async function example() {
-  const abortController = new AbortController();
-  setupServer({
-    outgoingOrigin: '*',
-    outgoingWindow: document.querySelector('iframe')!.contentWindow!,
-    incomingOrigins: ['https://www.nomadglobal.com'],
-    signal: abortController.signal,
-  })
-    .addListener<{ type: 'HELLO'; payload: string }, { type: 'hello' }>(
-      matchMessage({ type: 'HELLO' }),
-      (data) => {
-        data;
-        return { type: 'hello' };
-      }
-    )
-    .listen();
-
-  document.querySelector('button')?.addEventListener('click', () => {
-    abortController.abort();
-  });
 }
