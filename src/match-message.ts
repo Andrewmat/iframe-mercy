@@ -1,4 +1,6 @@
-import type { MessageMatcher } from './utils';
+export type MessageMatcher<TData> = (
+  messageData: unknown
+) => messageData is TData;
 
 export function matchMessage<
   TIncoming extends TRecord,

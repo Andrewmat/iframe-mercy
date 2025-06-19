@@ -6,8 +6,7 @@ const iframe = document.getElementById('iframe') as HTMLIFrameElement;
 
 const client = setupClient({
   outgoingOrigin: window.location.origin,
-  outgoingWindow: iframe.contentWindow!,
-  incomingOrigins: [window.location.origin],
+  outgoingRoot: iframe.contentWindow!,
 });
 
 const updateIframeHeight = debounce(async function main() {

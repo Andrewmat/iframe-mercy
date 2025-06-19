@@ -1,4 +1,13 @@
-export { setupClient } from './setup-client';
-export { setupServer } from './setup-server';
-export { matchMessage, matchKey } from './match-message';
-export type { MessageController, MessageMatcher } from './utils';
+export {
+  setupClient,
+  type MercyClient,
+  type PostMessageOptions,
+  type SetupClientOptions,
+} from './setup-client';
+export {
+  setupServer,
+  type MercyServer,
+  type SetupServerOptions,
+  type MessageController,
+} from './setup-server';
+export { matchMessage, matchKey, type MessageMatcher } from './match-message';

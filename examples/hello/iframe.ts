@@ -3,7 +3,7 @@ import { matchType, type HelloBackMessage, type HelloMessage } from './common';
 
 setupServer({
   outgoingOrigin: window.location.origin,
-  outgoingWindow: window.parent,
+  outgoingRoot: window.parent,
 })
   .addListener<HelloMessage, HelloBackMessage>(
     matchType('hello'),

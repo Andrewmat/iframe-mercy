@@ -1,20 +1,34 @@
 import { dispatchMessage } from './dispatch-message';
-import { createIsEventSafe, type MessageMatcher } from './utils';
+import type { MessageMatcher } from '../match-message';
+
+type CreateListenerMananagerOptions = {
+  outgoingOrigin: string;
+  outgoingRoot: Window;
+  incomingOrigins: string[];
+  root: Window;
+  signal?: AbortSignal;
+};
+
+type ListenerManager = {
+  start: () => void;
+  on: <TIncoming, TOutgoing>(
+    matcher: MessageMatcher<TIncoming>,
+    controller: (data: TIncoming) => TOutgoing | PromiseLike<TOutgoing>
+  ) => void;
+  off: <TIncoming>(matcher: MessageMatcher<TIncoming>) => void;
+  status: ListenerManagerStatus;
+};
+
+type ListenerManagerStatus = 'idle' | 'running' | 'stopped';
 
 export function createListenerManager({
   outgoingOrigin,
-  outgoingWindow,
+  outgoingRoot,
   incomingOrigins,
   signal,
-  root = window,
-}: {
-  outgoingOrigin: string;
-  outgoingWindow: Window;
-  incomingOrigins: string[];
-  signal?: AbortSignal;
-  root?: Window;
-}) {
-  let status: 'idle' | 'running' | 'stopped' = 'idle';
+  root,
+}: CreateListenerMananagerOptions): ListenerManager {
+  let status: ListenerManagerStatus = 'idle';
 
   const isEventSafe = createIsEventSafe(incomingOrigins);
   const entries: Map<
@@ -34,7 +48,7 @@ export function createListenerManager({
         dispatchMessage({
           message: result,
           targetOrigin: outgoingOrigin,
-          targetWindow: outgoingWindow,
+          targetWindow: outgoingRoot,
         });
       }
     });
@@ -65,15 +79,18 @@ export function createListenerManager({
     entries.delete(matcher);
   }
 
-  const manager = {
+  const manager: ListenerManager = {
     start,
     on,
     off,
     status,
-    __listeners: entries,
   };
   return manager;
 }
+
+export const createIsEventSafe =
+  (safeOrigins: string[] | undefined) => (event: MessageEvent<unknown>) =>
+    safeOrigins == null ? true : safeOrigins.includes(event.origin);
 
 type EntryListener<TIncoming, TOutgoing> = {
   matcher: MessageMatcher<TIncoming>;

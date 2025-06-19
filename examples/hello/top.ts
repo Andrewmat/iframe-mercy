@@ -5,9 +5,9 @@ main();
 async function main() {
   const iframe = document.getElementsByTagName('iframe')[0];
 
-  const client = await setupClient({
+  const client = setupClient({
     outgoingOrigin: window.location.origin,
-    outgoingWindow: iframe.contentWindow!,
+    outgoingRoot: iframe.contentWindow!,
   });
 
   const myName = 'top';

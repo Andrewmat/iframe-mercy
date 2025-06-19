@@ -7,7 +7,7 @@ import { matchMessage, setupServer } from '../../src';
 
 const server = setupServer({
   outgoingOrigin: 'http://localhost:5173',
-  outgoingWindow: window.parent,
+  outgoingRoot: window.parent,
   incomingOrigins: ['http://localhost:5173'],
 }).addListener<FetchHeightMessage, ResponseHeightMessage>(
   matchMessage({ action: 'fetch:height' }),

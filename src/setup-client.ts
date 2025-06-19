@@ -1,38 +1,49 @@
-import { dispatchMessage } from './dispatch-message';
-import { createListenerManager } from './listener-manager';
+import { dispatchMessage } from './internals/dispatch-message';
+import { createListenerManager } from './internals/listener-manager';
+import type { MessageMatcher } from './match-message';
 import { ackMatcher, synMessage } from './syn-ack';
-import { type MessageMatcher } from './utils';
+
+export type MercyClient = {
+  postMessage: <TOutgoing, TIncoming>(
+    options: PostMessageOptions<TOutgoing, TIncoming>
+  ) => Promise<TIncoming>;
+};
+
+export type SetupClientOptions = {
+  outgoingOrigin: string;
+  outgoingRoot: Window;
+  waitForServer?: boolean;
+  signal?: AbortSignal;
+};
+
+export type PostMessageOptions<TOutgoing, TIncoming> = {
+  message: TOutgoing;
+  waitFor?: MessageMatcher<TIncoming>;
+  signal?: AbortSignal;
+};
 
 export function setupClient({
   outgoingOrigin,
-  outgoingWindow,
-  incomingOrigins = [outgoingOrigin],
+  outgoingRoot,
   waitForServer = true,
   signal,
-  thisWindow = window,
-}: {
-  outgoingOrigin: string;
-  outgoingWindow: Window;
-  incomingOrigins?: string[];
-  waitForServer?: boolean;
-  signal?: AbortSignal;
-  thisWindow?: Window;
-}) {
+}: SetupClientOptions): MercyClient {
+  const root = window;
   let canPostMessage = waitForServer ? false : true;
   const abortController = new AbortController();
   const listenerManager = createListenerManager({
-    outgoingOrigin: outgoingOrigin,
-    outgoingWindow: outgoingWindow,
-    incomingOrigins,
+    outgoingOrigin,
+    outgoingRoot,
+    incomingOrigins: [outgoingOrigin],
     signal: abortController.signal,
-    root: thisWindow,
+    root,
   });
   listenerManager.start();
   signal?.addEventListener('abort', (reason) => {
     abortController.abort(reason);
   });
 
-  const client = {
+  const client: MercyClient = {
     postMessage,
   };
   return client;
@@ -42,11 +53,7 @@ export function setupClient({
     message,
     waitFor,
     signal,
-  }: {
-    message: TOutgoing;
-    waitFor?: MessageMatcher<TIncoming>;
-    signal?: AbortSignal;
-  }): Promise<TIncoming> {
+  }: PostMessageOptions<TOutgoing, TIncoming>): Promise<TIncoming> {
     return new Promise(async (resolve, reject) => {
       await handleServer();
 
@@ -64,7 +71,7 @@ export function setupClient({
       dispatchMessage({
         message,
         targetOrigin: outgoingOrigin,
-        targetWindow: outgoingWindow,
+        targetWindow: outgoingRoot,
       });
       if (waitFor == null) {
         // TO DO improve typing
@@ -87,12 +94,12 @@ export function setupClient({
           dispatchMessage({
             message: synMessage,
             targetOrigin: outgoingOrigin,
-            targetWindow: outgoingWindow,
+            targetWindow: outgoingRoot,
           });
-          thisWindow.clearInterval(intervalId);
+          root.clearInterval(intervalId);
         };
-        thisWindow.requestIdleCallback(dispatchSyn);
-        intervalId = thisWindow.setInterval(dispatchSyn, 100);
+        root.requestIdleCallback(dispatchSyn);
+        intervalId = root.setInterval(dispatchSyn, 100);
       });
     }
   }

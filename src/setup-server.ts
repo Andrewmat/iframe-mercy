@@ -1,55 +1,51 @@
-import { createListenerManager } from './listener-manager';
+import { createListenerManager } from './internals/listener-manager';
+import type { MessageMatcher } from './match-message';
 import { ackMessage, synMatcher } from './syn-ack';
-import { type MessageController, type MessageMatcher } from './utils';
+
+export type MercyServer = {
+  addListener: <TIncoming, TOutgoing>(
+    matcher: MessageMatcher<TIncoming>,
+    controller: MessageController<TIncoming, TOutgoing>
+  ) => MercyServer;
+  listen: () => void;
+};
+
+export type SetupServerOptions = {
+  outgoingOrigin: string;
+  outgoingRoot: Window;
+  incomingOrigins?: string[];
+  signal?: AbortSignal;
+};
+
+export type MessageController<TIncoming, TOutgoing> = (
+  data: TIncoming
+) => TOutgoing | Promise<TOutgoing>;
 
 export function setupServer({
   outgoingOrigin,
-  outgoingWindow,
+  outgoingRoot,
   incomingOrigins = [outgoingOrigin],
-  signal: serverSignal,
-  thisWindow = window,
-}: {
-  outgoingOrigin: string;
-  outgoingWindow: Window;
-  incomingOrigins?: string[];
-  signal?: AbortSignal;
-  thisWindow?: Window;
-}) {
-  const abortController = new AbortController();
+  signal,
+}: SetupServerOptions): MercyServer {
+  const root = window;
   const listenerManager = createListenerManager({
-    outgoingOrigin: outgoingOrigin,
-    outgoingWindow: outgoingWindow,
+    outgoingOrigin,
+    outgoingRoot,
     incomingOrigins,
-    root: thisWindow,
-    signal: abortController.signal,
+    root,
+    signal,
   });
 
-  listenerManager.on(synMatcher, () => {
-    return ackMessage;
-  });
-
-  serverSignal?.addEventListener('abort', () => {
-    abortController.abort();
-  });
+  listenerManager.on(synMatcher, () => ackMessage);
 
   function addListener<TIncoming, TOutgoing>(
     matcher: MessageMatcher<TIncoming>,
-    controller: MessageController<TIncoming, TOutgoing>,
-    options?: Partial<{ signal: AbortSignal }>
-  ) {
-    if (!options?.signal) {
-      listenerManager.on(matcher, controller);
-      return server;
-    }
-
-    if (options.signal.aborted) {
-      return server;
-    }
-    listenerManager.on(matcher, controller);
-    options.signal.addEventListener('abort', () => {
+    controller: MessageController<TIncoming, TOutgoing>
+  ): MercyServer {
+    listenerManager.on(matcher, (...args) => {
       listenerManager.off(matcher);
+      return controller(...args);
     });
-
     return server;
   }
 
@@ -58,7 +54,7 @@ export function setupServer({
     return server;
   }
 
-  const server = {
+  const server: MercyServer = {
     addListener,
     listen,
   };
