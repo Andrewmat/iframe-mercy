@@ -19,7 +19,7 @@ export function replyMessage<TMessage>({
 }) {
   const targetWindow = event.source;
   if (targetWindow) {
-    targetWindow.postMessage(message);
+    targetWindow.postMessage(message, { targetOrigin: event.origin });
     return;
   }
 
