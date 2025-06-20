@@ -55,9 +55,9 @@ const mercyClient = setupClient({
 const response = await mercyClient.postMessage({
   message: { type: 'user-data' },
   waitFor: matchMessage({ type: 'user-data:response' }),
-})
+});
 
-console.log(response.payload) // > John Doe
+console.log(response.payload); // > John Doe
 ```
 
 ## Server/Client
@@ -130,13 +130,13 @@ postMessage<TOutgoing, TIncoming>(options: PostMessageOptions<TOutgoing, TIncomi
 // usage example
 const response = await mercyClient.postMessage({
   message: { type: 'get-user', id: 123 },
-  waitFor: matchMessage({ type: 'get-user:response' })
+  waitFor: matchMessage({ type: 'get-user:response' }),
 });
 console.log(response.user);
 
 // Without waitFor (fire and forget)
 client.postMessage({
-  message: { type: 'log-event' }
+  message: { type: 'log-event' },
 });
 ```
 
@@ -173,11 +173,11 @@ type SetupServerOptions = {
 ```ts
 import { setupServer } from 'iframe-mercy';
 
-const abortController = new AbortController()
+const abortController = new AbortController();
 const mercyServer = setupServer({
   incomingOrigins: ['https://external.example.com'],
   signal: abortController.signal,
-})
+});
 ```
 
 #### `MercyServer`
@@ -188,13 +188,9 @@ The server instance returned by `setupServer`. Main methods:
 - `listen(): void`
 
 ```ts
-mercyServer.addListener(
-  matchMessage({ type: 'save-data' }),
-  (message) => {
-    // handle save
-    return { type: 'save-data:response', status: 'ok' };
-  }
-);
+mercyServer.addListener(matchMessage({ type: 'save-data' }), (message) => {
+  return { type: 'save-data:response', status: 'ok' };
+});
 
 mercyServer.listen();
 ```
@@ -204,7 +200,9 @@ mercyServer.listen();
 A function that handles incoming messages and returns a response (sync or async):
 
 ```ts
-type MessageListener<TIncoming = any, TOutgoing = any> = (data: TIncoming) => TOutgoing | Promise<TOutgoing>;
+type MessageListener<TIncoming = any, TOutgoing = any> = (
+  data: TIncoming
+) => TOutgoing | Promise<TOutgoing>;
 ```
 
 ### `MessageMatcher`
@@ -227,12 +225,9 @@ matcher({ type: 'get-user', id: 123 }); // true
 matcher({ type: 'other' }); // false
 
 // usage example
-mercyServer.addListener(
-  matcher,
-  (message) => {
-    console.log(message.type) // > 'get-user'
-  }
-)
+mercyServer.addListener(matcher, (message) => {
+  console.log(message.type); // > 'get-user'
+});
 ```
 
 ### `matchKey(key: string): (value: any) => MessageMatcher`
@@ -245,16 +240,13 @@ import { matchKey } from 'iframe-mercy';
 
 const matchType = matchKey('type');
 
-mercyServer.addListener(
-  matchType('get-user'),
-  (message) => {
-    return { type: 'get-user:response', data: userData };
-  }
-);
+mercyServer.addListener(matchType('get-user'), (message) => {
+  return { type: 'get-user:response', data: userData };
+});
 
 client.postMessage({
   message: { type: 'get-user', id: 123 },
-  waitFor: matchType('get-user:response')
+  waitFor: matchType('get-user:response'),
 });
 ```
 
