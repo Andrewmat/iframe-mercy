@@ -32,8 +32,6 @@ export function setupClient({
   let canPostMessage = waitForServer ? false : true;
   const abortController = new AbortController();
   const listenerManager = createListenerManager({
-    outgoingOrigin,
-    outgoingRoot,
     incomingOrigins: [outgoingOrigin],
     signal: abortController.signal,
     root,
@@ -55,7 +53,7 @@ export function setupClient({
     signal,
   }: PostMessageOptions<TOutgoing, TIncoming>): Promise<TIncoming> {
     return new Promise(async (resolve, reject) => {
-      await handleServer();
+      await handleServerSync();
 
       signal?.addEventListener('abort', (event) => {
         if (waitFor) listenerManager.off(waitFor);
@@ -63,9 +61,7 @@ export function setupClient({
       });
 
       if (waitFor) {
-        listenerManager.on(waitFor, (incomingMessage) => {
-          resolve(incomingMessage);
-        });
+        listenerManager.on(waitFor, resolve);
       }
 
       dispatchMessage({
@@ -80,13 +76,14 @@ export function setupClient({
       }
     });
 
-    function handleServer() {
+    function handleServerSync() {
       if (canPostMessage) return;
 
       return new Promise<void>((resolve) => {
         let intervalId: number;
         listenerManager.on(ackMatcher, () => {
           canPostMessage = true;
+          root.clearInterval(intervalId);
           resolve();
         });
 
@@ -96,7 +93,6 @@ export function setupClient({
             targetOrigin: outgoingOrigin,
             targetWindow: outgoingRoot,
           });
-          root.clearInterval(intervalId);
         };
         root.requestIdleCallback(dispatchSyn);
         intervalId = root.setInterval(dispatchSyn, 100);

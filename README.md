@@ -1,8 +1,6 @@
 # iframe-mercy
 
-Your iframe communication made simple.
-
-## The issue and solution
+Simple Iframe communication.
 
 The API `postMessage` for iframe communication is limited and lackluster.
 
@@ -18,14 +16,14 @@ npm install iframe-mercy
 
 You will need to create a server and a client. The client will request the server, and the server will listen and respond back to the client.
 
-For the server, you will need to declare all message handlers
+### Server
 
 ```ts
 import { setupServer, matchMessage } from 'iframe-mercy';
 
 const parentOrigin = 'https://www.example.com';
 const mercyServer = setupServer({
-  outgoingOrigin: parentOrigin,
+  incomingOrigins: [parentOrigin],
   outgoingRoot: window.parent,
 });
 
@@ -44,19 +42,19 @@ mercyServer.addListener(
 mercyServer.listen();
 ```
 
-For the client, you will send messages to the server and receive responses
+### Client
 
 ```ts
 import { setupClient, matchMessage } from 'iframe-mercy';
 
 const mercyClient = setupClient({
   outgoingOrigin: 'https://iframe.example.com',
-  outgoingRoot: document.getElementsByTagName('iframe')[0]
+  outgoingRoot: document.getElementsByTagName('iframe')[0],
 });
 
 const response = await mercyClient.postMessage({
-  message: { type: 'user-data' }
-  waitFor: matchMessage({ type: 'user-data:response' })
+  message: { type: 'user-data' },
+  waitFor: matchMessage({ type: 'user-data:response' }),
 })
 
 console.log(response.payload) // > John Doe
@@ -64,13 +62,12 @@ console.log(response.payload) // > John Doe
 
 ## Server/Client
 
-Your iframe and parent container needs to be assigned to server/client roles.
+Your iframe and parent container need to be assigned to server/client roles.
 
-Server roles are passive, it awaits for messages and trigger actions based on it, possibly returning a response to it.
+- **Server**: Passive, awaits messages and triggers actions, possibly returning a response.
+- **Client**: Post messages to the server and awaits responses.
 
-Clients serve to trigger these actions. The client posts messages to the server, and awaits for its response.
-
-Your iframe and parent containers should have the role that best fits its purpose, or even have dual roles. For instance, the iframe could request url data from the parent, and also send height data from itself to a parent container; in this case, both iframe and parent would need a client and a server.
+Both iframe and parent can have dual roles if needed (e.g., iframe requests data from parent, and also sends height data to parent).
 
 ## Matchers
 
@@ -101,283 +98,179 @@ client.postMessage({
 
 ## API reference
 
-### `setupClient(setupClientOptions)`
+### `setupClient(options: SetupClientOptions): MercyClient`
 
-Creates a new client to send messages to server. It requires an options object argument and returns the client
+Creates a new client to send messages to a server.
 
-```ts
-function setupClient(options: SetupClientOptions): MercyClient;
-```
-
-```ts
-// usage example
-import { setupClient } from 'iframe-mercy';
-
-const mercyClient = setupClient({
-  outgoingOrigin: 'https://iframe.example.com',
-  outgoingRoot: iframe.contentWindow!,
-});
-```
-
-### `SetupClientOptions`
+#### `SetupClientOptions`
 
 ```ts
 type SetupClientOptions = {
   outgoingOrigin: string;
   outgoingRoot: Window;
+  signal?: AbortSignal;
   waitForServer?: boolean;
+};
+```
+
+- `outgoingOrigin`: The expected origin for the server (required).
+- `outgoingRoot`: The target window (iframe or parent) (required).
+- `signal`: Optional abort signal for cleanup.
+- `waitForServer`: Wait for server initialization (default: true). Set to `false` if the receiver does not use `iframe-mercy`'s server (e.g., custom message handlers), so the client sends messages immediately without waiting for a handshake.
+
+#### `MercyClient`
+
+The client instance returned by `setupClient`. The only method is:
+
+```ts
+postMessage<TOutgoing, TIncoming>(options: PostMessageOptions<TOutgoing, TIncoming>): Promise<TIncoming | void>;
+```
+
+```ts
+// usage example
+const response = await mercyClient.postMessage({
+  message: { type: 'get-user', id: 123 },
+  waitFor: matchMessage({ type: 'get-user:response' })
+});
+console.log(response.user);
+
+// Without waitFor (fire and forget)
+client.postMessage({
+  message: { type: 'log-event' }
+});
+```
+
+#### `PostMessageOptions`
+
+```ts
+type PostMessageOptions<TOutgoing = any, TIncoming = any> = {
+  message: TOutgoing;
+  waitFor?: MessageMatcher<TIncoming>;
   signal?: AbortSignal;
 };
 ```
 
-```ts
-// usage example
-import { type SetupClientOptions } from 'iframe-mercy';
+- `message`: The message to send.
+- `waitFor`: Matcher for the expected response. Can be a custom function, or created with `matchMessage` or `matchKey`.
+- `signal`: Optional abort signal for the `waitFor` response.
 
-const setupClientOptions: SetupClientOptions = {
-  outgoingOrigin: 'https://iframe.example.com',
-  outgoingRoot: iframe.contentWindow!,
-  waitForServer: false,
-  signal: abortController.signal,
-};
-```
+### `setupServer(options: SetupServerOptions): MercyServer`
 
-#### `SetupClientOptions['outgoingOrigin']`
+Creates a new server to listen for messages from clients.
 
-The expected origin to post messages.
-
-```ts
-// usage example
-import { setupClient } from 'iframe-mercy';
-
-const mercyClient = setupClient({
-  outgoingOrigin: 'https://server.example.com',
-});
-```
-
-> It can be set to `'*'`, however this will disable any security checks and it is highly discouraged
-
-#### `SetupClientOptions['outgoingRoot']`
-
-The window to post the message to. To post messages to an iframe, you can use the `contentWindow` property.
-
-```ts
-// post to iframe example
-import { setupClient } from 'iframe-mercy';
-
-const mercyClient = setupClient({
-  outgoingRoot: iframe.contentWindow!,
-  // ...
-});
-```
-
-To get the parent window, you can use the `parent` property.
-
-```ts
-// post to parent example
-import { setupClient } from 'iframe-mercy';
-
-const mercyClient = setupClient({
-  outgoingRoot: window.parent,
-  //...
-});
-```
-
-#### `SetupClientOptions['waitForServer']`
-
-`default: true`
-
-This waits for `ServerMercy` to initialize in the receiver.
-
-If false, the message is sent to the server without checking if the server is initialized.
-
-This can be useful if the receiver does not use `MercyServer` and uses custom message handlers instead.
-
-```ts
-// usage example
-import { setupClient } from 'iframe-mercy';
-
-const mercyClient = setupClient({
-  waitForServer: false,
-  //...
-});
-```
-
-#### `SetupClientOptions['signal']`
-
-An AbortSignal that stops the client from listening the return of the posted messages and removes the message listener. It is used for cleanups and stop memory leaks.
-
-```ts
-// usage example
-import { setupClient } from 'iframe-mercy';
-
-effect((onCleanup) => {
-  const controller = new AbortController();
-  const client = setupClient({
-    signal: controller.signal,
-    // ...
-  });
-  onCleanup(() => {
-    controller.abort();
-  });
-});
-```
-
-### `mercyClient.postMessage(postMessageOptions)`
-
-TO DO
-
-#### `PostMessageOptions['message']`
-
-TO DO
-
-#### `PostMessageOptions['waitFor']`
-
-TO DO
-
-#### `PostMessageOptions['signal']`
-
-An AbortSignal that stops the client from listening the return of the posted message. Only has effect if there is a waitFor.
-
-```ts
-effect((onCleanup) => {
-  const controller = new AbortController();
-
-  client.postMessage({
-    message: { type: 'request' }
-    waitFor: matchMessage({ type: 'response' })
-    signal: controller.signal,
-  });
-
-  onCleanup(() => {
-    controller.abort()
-  });
-})
-```
-
-### `setupServer(setupServerOptions)`
-
-Creates a new unitialized server to listen to messages. It requires an options object argument and returns the server.
-
-```ts
-function setupServer(options: SetupServerOptions): MercyServer;
-```
-
-```ts
-// usage example
-import { setupServer, matchKey } from 'iframe-mercy';
-
-const matchType = matchKey('type');
-
-const mercyServer = setupServer({
-  outgoingOrigin: 'https://iframe.example.com',
-  outgoingRoot: iframe.contentWindow!,
-})
-  .addListener(
-    matchType('request'),
-    (message) => {
-      doSomething(message)
-      return { type: 'response' }
-    }
-  );
-
-mercyServer.listen()
-```
-
-### `SetupServerOptions`
+#### `SetupServerOptions`
 
 ```ts
 type SetupServerOptions = {
-  outgoingOrigin: string;
-  outgoingRoot: Window;
   incomingOrigins?: string[];
   signal?: AbortSignal;
 };
 ```
 
-### `SetupServerOptions['outgoingOrigin']`
-
-TO DO
-
-### `SetupServerOptions['outgoingRoot']`
-
-TO DO
-
-### `SetupServerOptions['incomingOrigins']`
-
-TO DO
-
-### `SetupServerOptions['signal']`
-
-An AbortSignal that stops the server and removes the message listener. It is used for cleanups and stop memory leaks.
+- `incomingOrigins`: Array of allowed origins for incoming messages.
+- `signal`: Optional abort signal for cleanup.
 
 ```ts
-// usage example
 import { setupServer } from 'iframe-mercy';
 
-effect((onCleanup) => {
-  const controller = new AbortController();
-  const server = setupServer({
-    signal: controller.signal,
-    // ...
-  });
-  onCleanup(() => {
-    controller.abort();
-  });
-});
+const abortController = new AbortController()
+const mercyServer = setupServer({
+  incomingOrigins: ['https://external.example.com'],
+  signal: abortController.signal,
+})
 ```
 
-### `mercyServer.listen()`
+#### `MercyServer`
+
+The server instance returned by `setupServer`. Main methods:
+
+- `addListener(matcher: MessageMatcher, listener: MessageListener): MercyServer`
+- `listen(): void`
 
 ```ts
-function listen(): void;
-```
-
-Initializes the server
-
-```ts
-// usage example
-import { setupServer } from 'iframe-mercy'
-
-setupServer(serverOptions).listen()
-```
-
-### `mercyServer.addListener(matcher, controller)`
-
-```ts
-function addListener<TIncoming, TOutgoing>(
-  matcher: MessageMatcher<TIncoming>,
-  controller: MessageController<TIncoming, TOutgoing>
-): MercyServer;
-
-type MessageController<TIncoming, TOutgoing> = (
-  data: TIncoming
-) => TOutgoing | Promise<TOutgoing>;
-```
-
-```ts
-// usage example
-import { setupServer } from 'iframe-mercy';
-
-setupServer(serverOptions).addListener(
-  (message) => message.type === 'save-data',
+mercyServer.addListener(
+  matchMessage({ type: 'save-data' }),
   (message) => {
-    storage.set('data', message.payload);
-    return { type: 'save-data:response' };
+    // handle save
+    return { type: 'save-data:response', status: 'ok' };
   }
 );
+
+mercyServer.listen();
 ```
 
-### matchMessage
+#### `MessageListener`
 
-TO DO
+A function that handles incoming messages and returns a response (sync or async):
 
-### matchKey
+```ts
+type MessageListener<TIncoming = any, TOutgoing = any> = (data: TIncoming) => TOutgoing | Promise<TOutgoing>;
+```
 
-TO DO
+### `MessageMatcher`
+
+A function that checks if a message matches certain criteria
+
+```ts
+type MessageMatcher<T> = (message: T) => boolean;
+```
+
+### `matchMessage(pattern: Partial<T>): MessageMatcher<T>`
+
+Creates a matcher that matches messages with all key/value pairs in the pattern.
+
+```ts
+import { matchMessage } from 'iframe-mercy';
+
+const matcher = matchMessage({ type: 'get-user' });
+matcher({ type: 'get-user', id: 123 }); // true
+matcher({ type: 'other' }); // false
+
+// usage example
+mercyServer.addListener(
+  matcher,
+  (message) => {
+    console.log(message.type) // > 'get-user'
+  }
+)
+```
+
+### `matchKey(key: string): (value: any) => MessageMatcher`
+
+Creates a matcher factory for a specific key in message objects.
+
+```ts
+// usage example
+import { matchKey } from 'iframe-mercy';
+
+const matchType = matchKey('type');
+
+mercyServer.addListener(
+  matchType('get-user'),
+  (message) => {
+    return { type: 'get-user:response', data: userData };
+  }
+);
+
+client.postMessage({
+  message: { type: 'get-user', id: 123 },
+  waitFor: matchType('get-user:response')
+});
+```
 
 ## Glossary
 
 ### Origin
 
 The origin part of the URL, containing the protocol, hostname and port. Ex: `https://my.example.com:3350`
+
+### AbortController
+
+A native JS API that can be used to remove listeners and stop requests. This is the main method chosen in this lib for cleanup effects.
+
+```ts
+const abortController = new AbortController();
+fetch(url, { signal: abortController.signal });
+window.addEventListener('custom', listener, { signal: abortController.signal });
+button.addEventListener('click', () => abortController.abort());
+```

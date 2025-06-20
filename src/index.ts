@@ -8,6 +8,6 @@ export {
   setupServer,
   type MercyServer,
   type SetupServerOptions,
-  type MessageController,
+  type MessageListener,
 } from './setup-server';
 export { matchMessage, matchKey, type MessageMatcher } from './match-message';

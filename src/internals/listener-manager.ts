@@ -1,12 +1,10 @@
-import { dispatchMessage } from './dispatch-message';
+import { replyMessage } from './dispatch-message';
 import type { MessageMatcher } from '../match-message';
 
 type CreateListenerMananagerOptions = {
-  outgoingOrigin: string;
-  outgoingRoot: Window;
   incomingOrigins: string[];
-  root: Window;
   signal?: AbortSignal;
+  root: Window;
 };
 
 type ListenerManager = {
@@ -22,8 +20,6 @@ type ListenerManager = {
 type ListenerManagerStatus = 'idle' | 'running' | 'stopped';
 
 export function createListenerManager({
-  outgoingOrigin,
-  outgoingRoot,
   incomingOrigins,
   signal,
   root,
@@ -40,17 +36,17 @@ export function createListenerManager({
     if (!isEventSafe(event)) return;
     entries.forEach(async (entry) => {
       const hasMatched = entry.matcher(event.data);
-      if (hasMatched) {
-        let result = entry.controller(event.data);
-        if (result != null && 'then' in result) {
-          result = await result;
-        }
-        dispatchMessage({
-          message: result,
-          targetOrigin: outgoingOrigin,
-          targetWindow: outgoingRoot,
-        });
+      if (!hasMatched) return;
+
+      let result = entry.controller(event.data);
+      if (result != null && 'then' in result) {
+        result = await result;
       }
+
+      replyMessage({
+        message: result,
+        event,
+      });
     });
   }
 
