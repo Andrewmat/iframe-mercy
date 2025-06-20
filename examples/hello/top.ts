@@ -1,21 +1,21 @@
 import { setupClient } from '../../src';
-import type { HelloBackMessage, HelloMessage } from './types';
+import { matchType, type HelloBackMessage, type HelloMessage } from './common';
 
 main();
 async function main() {
   const iframe = document.getElementsByTagName('iframe')[0];
 
-  const fetchMessage = await setupClient({
-    origin: window.location.origin,
-    server: iframe.contentWindow!,
+  const client = setupClient({
+    outgoingOrigin: window.location.origin,
+    outgoingRoot: iframe.contentWindow!,
   });
 
   const myName = 'top';
   console.log(`top: "Hello, my name is ${myName}"`);
 
-  const helloBack = await fetchMessage<HelloMessage, HelloBackMessage>({
-    message: { action: 'hello', payload: { name: myName } },
-    waitFor: 'hello back',
+  const helloBack = await client.postMessage<HelloMessage, HelloBackMessage>({
+    message: { type: 'hello', payload: { name: myName } },
+    waitFor: matchType('hello back'),
   });
 
   console.log(`top: "Now I know it is ${helloBack.payload.timeOfDay}"`);
